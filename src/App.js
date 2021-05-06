@@ -5,39 +5,38 @@ import NewTask from './components/NewTask/NewTask';
 import useHTTP from './hooks/use-http';
 
 function App() {
-  const [tasks, setTasks] = useState([]);
+    const [tasks, setTasks] = useState([]);
 
-  const transformTasks = tasksObj => {
-    const loadedTasks = [];
-    for (const taskKey in tasksObj) {
-        loadedTasks.push({ id: taskKey, text: tasksObj[taskKey].text });
-    }
-    setTasks(loadedTasks);
-  }
+    const url = 'https://react-http-678ba-default-rtdb.firebaseio.com/tasks.json';
 
-  const url = 'https://react-http-678ba-default-rtdb.firebaseio.com/tasks.json'
+    const { isLoading, error, sendRequest: fetchTasks } = useHTTP();
 
-  const { isLoading, error, sendRequest: fetchTasks } = useHTTP({url: url}, transformTasks);
+    useEffect(() => {
+        const transformTasks = (tasksObj) => {
+            const loadedTasks = [];
+            for (const taskKey in tasksObj) {
+                loadedTasks.push({ id: taskKey, text: tasksObj[taskKey].text });
+            }
+            setTasks(loadedTasks);
+        };
+        fetchTasks({ url: url }, transformTasks);
+    }, [fetchTasks]);
 
-  useEffect(() => {
-    fetchTasks();
-  }, []);
+    const taskAddHandler = (task) => {
+        setTasks((prevTasks) => prevTasks.concat(task));
+    };
 
-  const taskAddHandler = (task) => {
-    setTasks((prevTasks) => prevTasks.concat(task));
-  };
-
-  return (
-    <React.Fragment>
-      <NewTask onAddTask={taskAddHandler} />
-      <Tasks
-        items={tasks}
-        loading={isLoading}
-        error={error}
-        onFetch={fetchTasks}
-      />
-    </React.Fragment>
-  );
+    return (
+        <React.Fragment>
+            <NewTask onAddTask={taskAddHandler} />
+            <Tasks
+                items={tasks}
+                loading={isLoading}
+                error={error}
+                onFetch={fetchTasks}
+            />
+        </React.Fragment>
+    );
 }
 
 export default App;
